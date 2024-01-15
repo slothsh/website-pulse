@@ -1,0 +1,21 @@
+<script lang="ts">
+    export let fillColour: string;
+    export let hoverColour: string;
+    export let width: number = 512;
+    export let height: number = 512;
+    export let fillDuration: number = 250;
+    export let fillDurationUnit: string = "ms";
+    const fillDurationString = `${fillDuration}${fillDurationUnit}`
+</script>
+
+<svg style="--fill-colour:{fillColour}; --hover-colour:{hoverColour}; --fill-duration:{fillDurationString};" width="512" height="512" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M 40.5 64 L 471.5 64 Q 492.5 68 503 82.5 Q 509.6 90.4 512 102.5 L 512 119.5 Q 508 138.5 494.5 148 L 281.5 290 L 267.5 296 L 249.5 297 Q 238.5 295 230.5 290 L 17.5 148 L 9 139.5 L 1 124.5 L 0 119.5 L 0 102.5 Q 4.4 82.9 18.5 73 Q 27.4 66.4 40.5 64 Z "></path><path d="M 0.5 171 L 215.5 315 Q 226.3 321.7 240.5 325 Q 245.3 323.8 246.5 326 L 265.5 326 L 279.5 323 L 296.5 315 L 511.5 171 L 512 409.5 Q 507.6 429.1 493.5 439 Q 484.6 445.6 471.5 448 L 40.5 448 Q 19.5 444 9 429.5 Q 2.4 421.6 0 409.5 L 0.5 171 Z "></path></svg>
+
+<style lang="postcss" scoped>
+    svg path {
+        fill: var(--fill-colour);
+        transition: fill var(--fill-duration) ease-in-out;
+    }
+    svg:hover path {
+        fill: var(--hover-colour);
+    }
+</style>

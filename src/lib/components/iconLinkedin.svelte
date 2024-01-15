@@ -1,0 +1,19 @@
+<script lang="ts">
+    export let fillColour: string;
+    export let hoverColour: string;
+    export let fillDuration: number = 250;
+    export let fillDurationUnit: string = "ms";
+    const fillDurationString = `${fillDuration}${fillDurationUnit}`
+</script>
+
+<svg style="--fill-colour:{fillColour}; --hover-colour:{hoverColour}; --fill-duration:{fillDurationString};" width="512" height="512" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M 58.5 0 L 453.5 0 Q 478.6 4.9 493 20.5 Q 507.3 34.7 512 58.5 L 512 453.5 Q 507.1 478.6 491.5 493 Q 477.3 507.3 453.5 512 L 58.5 512 Q 33.4 507.1 19 491.5 Q 4.7 477.3 0 453.5 L 0 58.5 Q 4.9 33.4 20.5 19 Q 34.7 4.7 58.5 0 Z M 141 96 L 126 99 L 114 106 Q 102 115 98 132 L 98 148 Q 100 158 106 166 Q 116 180 137 183 Q 160 183 171 171 Q 181 161 184 145 L 183 130 L 176 115 Q 170 106 161 101 L 150 97 L 141 96 Z M 325 199 L 303 204 L 286 214 L 273 229 L 272 209 L 271 207 L 265 202 L 214 202 L 211 203 L 206 209 L 206 410 L 207 412 L 210 414 L 216 416 L 263 416 L 268 414 L 272 409 L 272 298 L 277 279 L 283 269 Q 290 258 305 256 Q 323 254 332 262 Q 339 267 342 277 L 346 294 L 346 408 L 347 411 L 353 415 L 409 415 L 412 413 L 414 410 L 414 283 L 413 282 L 412 266 L 408 249 L 396 225 Q 376 196 325 199 Z M 116 202 L 112 204 L 109 207 L 107 213 L 107 406 L 109 411 Q 112 415 119 416 L 164 416 L 170 414 L 174 408 L 174 211 L 173 208 L 166 202 L 116 202 Z "></path></svg>
+
+<style lang="postcss" scoped>
+    svg path {
+        fill: var(--fill-colour);
+        transition: fill var(--fill-duration) ease-in-out;
+    }
+    svg:hover path {
+        fill: var(--hover-colour);
+    }
+</style>
