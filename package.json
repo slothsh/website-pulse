@@ -1,5 +1,5 @@
 {
-	"name": "website-stefanolivier-swift",
+	"name": "website-stefanolivier-pulse",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
@@ -23,5 +23,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"fast-png": "^6.2.0",
+		"gl-matrix": "^3.4.3"
 	}
 }

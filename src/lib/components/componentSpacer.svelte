@@ -3,7 +3,7 @@
     export let spacing: number;
     export let unit: string;
 
-    const isDirectionHorizontal = direction == "horizontal";
+    const isDirectionHorizontal = direction === "horizontal";
     const directionStyle = isDirectionHorizontal
         ? "flex-row"
         : "flex-col";
