@@ -45,5 +45,7 @@ ___
 
 - [ ] Write build step for fetching large assets from remote server
 - [ ] Write build step for compiling raw data from assets
+- [ ] Factor out program initialization from GLCanvas
+- [ ] Create simple logging & error reporting utilities
 
 ___

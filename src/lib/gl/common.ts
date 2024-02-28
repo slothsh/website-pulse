@@ -9,7 +9,8 @@ export enum Status {
     FAIL_INIT_BUFFER,
     FAIL_INIT_ATTRIBUTE,
     FAIL_INIT_UNIFORM,
-    FAIL_RENDER
+    FAIL_RENDER,
+    PROGRAM_NOT_FOUND,
 }
 
 export module GL {

@@ -3,7 +3,7 @@ import type { ErrorWrapper } from "$lib/utilities/error";
 import type { Program, ProgramSourceFiles, ProgramConstructor } from "$lib/gl/program";
 import { createProgram, NullProgram, type ProgramRenderArguments } from "$lib/gl/program";
 import type { Nullable } from "$lib/utilities/traits";
-import type { Status } from "$lib/gl/common";
+import { Status } from "$lib/gl/common";
 
 export type ProgramList = GL.ProgramList;
 
@@ -112,6 +112,15 @@ export module GL {
                 }
                 ++i;
             }
+        }
+
+        getProgramProxy(programID: string): Result<Nullable<Program>, Status> {
+            for (const [id, p, args] of this.programs) {
+                if (p.getProgramID() === programID) {
+                    return OkResult(p);
+                }
+            }
+            return BadResult(Status.PROGRAM_NOT_FOUND, `program not found in ${ProgramList.name} when searching for program proxy`);
         }
 
         get length() {

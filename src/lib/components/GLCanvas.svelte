@@ -1,9 +1,14 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, beforeUpdate } from "svelte";
     import { GL } from "$lib/gl/index"
+    import { slide } from "svelte/transition";
+    import { quintInOut } from "svelte/easing"; 
+    import Portrait from "$lib/assets/portrait.raw?raw-image";
+    import { Utility } from "$lib/utilities/index";
 
     export let width = "100vw";
     export let height = "100vh";
+
     let canvas: HTMLCanvasElement;
 
     $: innerWidth = 0;
@@ -43,6 +48,14 @@
                 }
             }
 
+            let gridWidth = 1.0;
+            let gridHeight = 1.0;
+            let image = Utility.Images.nearestNeighborRGBA(Portrait, 1.0, 1.0)
+
+            const proxy = <GL.ProgramProcedures.CellGridProgram>programList
+                .getProgramProxy(GL.ProgramProcedures.CellGridProgram.getProgramID())
+                .unwrap();
+
             const renderer = new GL.Renderer(gl);
 
             let dt = 0.0;
@@ -51,13 +64,23 @@
             function render(): void {
                 dt += tick;
                 if (dt >= 2 * Math.PI) { dt -= 2 * Math.PI; }
+                if (proxy.getGridWidth() !== gridWidth || proxy.getGridHeight() !== gridHeight)
+                    updateGridImage();
 
                 programList.setProgramRenderArguments([
                     [
                         -1, GL.ProgramProcedures.CellGridProgram.getProgramID(),
-                        {
+                        <GL.ProgramProcedures.CellGridProgramRenderArguments>{
                             uniforms: {
                                 "uDeltaTime": [dt]
+                            },
+                            cellsSubGrid: {
+                                parentRowStart: 0.0,
+                                parentColumnStart: 0.5,
+                                totalRows: gridWidth,
+                                totalColumns: gridHeight,
+                                totalComponents: 4,
+                                data: image,
                             }
                         },
                     ]
@@ -73,6 +96,17 @@
                 requestAnimationFrame(render);
             }
 
+            function updateGridImage() {
+                gridWidth = proxy.getGridWidth();
+                gridHeight = proxy.getGridHeight();
+
+                image = Utility.Images.nearestNeighborRGBA(Portrait, gridWidth / Portrait.length, gridHeight / Portrait[0].length)
+                    .map((pixel: Array<Uint8Array>) => {
+                        return pixel.map((rgba: Uint8Array) => { return ((rgba[0] + rgba[1] + rgba[2]) / 3.0) / 255.0 });
+                    })
+                    .flat(2);
+            }
+
             requestAnimationFrame(render);
             console.log("[INFO] WebGL succesfully initialized");
         }
@@ -84,7 +118,9 @@
 </script>
 
 <svelte:window on:mousemove|preventDefault={handleMouse} bind:innerWidth bind:innerHeight bind:outerWidth bind:outerHeight />
+
 <canvas bind:this={canvas}
+        transition:slide={{ delay: 100, duration: 800, axis: "x", easing: quintInOut }}
         style="--width:{width}; --height:{height};"
         id="glCanvas"
         width={innerWidth}

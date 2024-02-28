@@ -1,17 +1,26 @@
+#version 300 es
+
+#ifdef GL_EXT_shader_texture_lod
+#extension GL_EXT_shader_texture_lod : enable
+#endif
+
+#ifdef GL_OES_standard_derivatives
+#extension GL_OES_standard_derivatives : enable
+#endif
+
 precision highp float;
 
 uniform float uDeltaTime;
-// uniform vec2 uVelocity;
 uniform vec2 uWindowDimensions;
 uniform vec2 uCursorPosition;
-// uniform vec2 uCursorOffset;
-// uniform int uMouseLMBPressed;
 
-// varying highp vec2 vPosition;
-// varying highp vec4 vColor;
-// varying highp vec2 vOffset;
-// varying highp vec4 vGridPosition;
-// varying highp float vPointSize;
+// in highp vec2 vPosition;
+
+out vec4 fragColor;
+
+float cc(float value) {
+    return value / 255.0;
+}
 
 void main() {
     float r = 0.0;
@@ -20,17 +29,10 @@ void main() {
 
     float x = gl_PointCoord.x;
     float y = gl_PointCoord.y;
-    // float distanceCursor = sqrt(pow((x) - (uCursorPosition.x), 2.0) + pow((y) - (-uCursorPosition.y), 2.0));
-    float distanceCursor = distance(gl_PointCoord, vec2(uCursorPosition.x, -uCursorPosition.y));
 
-    if (r > 1.0) {
-        discard;
-    }
-
-    float falloffStop = distance(gl_PointCoord, vec2(r));
-    vec2 edges = smoothstep(falloffStop, r, vec2(r));
-    float d = dot(edges, edges);
-
-    vec3 color = vec3((255.0 / 255.0));
-    gl_FragColor = vec4(color, max(0.0, 1.0 - (1.0 * r)));
+    float d = length(cxy);
+    float wd = fwidth(d);
+    float circle = smoothstep(r + wd, r - wd, d);
+    vec3 color = vec3(cc(255.0));
+    fragColor = vec4(color, 1.0 - circle);
 }

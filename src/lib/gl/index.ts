@@ -18,6 +18,8 @@ export module GL {
     export import ProgramList = _ProgramList.ProgramList;
 
     export module ProgramProcedures {
+        export type CellGridProgramRenderArguments = _CellGridProgram.CellGridProgramRenderArguments;
+        export type CellsGridData = _CellGridProgram.CellsGridData;
         export import CellGridProgram = _CellGridProgram.CellGridProgram;
     }
 }

@@ -7,16 +7,16 @@ import type {
     Buffer,
     BufferMap,
     BufferMutatorArguments,
-    BufferDrawArguments,
     BufferDrawFunction,
     Attribute,
     Uniform,
     UniformArguments } from "$lib/gl/program";
 import { Result, OkResult, BadResult } from "$lib/utilities/result";
-import { WrapError, type ErrorWrapper } from "$lib/utilities/error";
 import type { Nullable } from "$lib/utilities/traits";
 import vertexShaderCells from "$lib/shaders/cells.vert.glsl?raw";
 import fragmentShaderCells from "$lib/shaders/cells.frag.glsl?raw";
+
+let c = 0;
 
 export module GL {
     export enum BufferID {
@@ -224,6 +224,8 @@ export module GL {
                 );
             }
 
+            gl.getExtension("OES_standard_derivatives")
+            gl.getExtension("EXT_shader_texture_lod")
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.DEPTH_TEST);
@@ -301,6 +303,9 @@ export module GL {
 
         private drawBuffers(args?: CellGridProgramRenderArguments): void {
             if (args !== undefined) {
+                this.setGridWidth(Math.ceil(args.renderer!.canvasDimensions.w / this.diameter) * this.density);
+                this.setGridHeight(Math.ceil(args.renderer!.canvasDimensions.h / this.diameter) * this.density);
+
                 for (const key of Object.keys(this.buffers)) {
                     const id = parseInt(key);
                     switch (id) {
@@ -311,23 +316,13 @@ export module GL {
                                 // && args.cellsSubGrid !== undefined;
 
                             if (dependenciesStatisfied) {
-                                const diameter = 50.0;
-                                const density = 2.0;
                                 const gridData: CellsGridData = {
-                                    w: Math.ceil(args.renderer!.canvasDimensions.w / diameter) * density,
-                                    h: Math.ceil(args.renderer!.canvasDimensions.h / diameter) * density,
-                                    density,
-                                    radius: diameter / 2,
-                                    scale: 1.0,
-                                    // subGrid: args!.cellsSubGrid!
-                                    subGrid: {
-                                        parentRowStart: 0,
-                                        parentColumnStart: 0,
-                                        totalRows: 0,
-                                        totalColumns: 0,
-                                        totalComponents: 0,
-                                        data: [],
-                                    }
+                                    w: this.gridWidth,
+                                    h: this.gridHeight,
+                                    density: this.density,
+                                    radius: this.diameter / 2.0,
+                                    scale: this.scale,
+                                    subGrid: args!.cellsSubGrid!
                                 };
 
                                 // const drawArguments = this.mergeBufferDrawArguments(this.buffers[id].draw!, this.buffers[id].defaultArguments!, args!.buffers[id].drawArguments);
@@ -420,6 +415,17 @@ export module GL {
         private attributes: Attribute[] = [];
         private uniforms: Uniform[] = [];
 
+        private gridWidth: number = 1.0;
+        private gridHeight: number = 1.0;
+        private density: number = 3.0;
+        private diameter: number = 150.0;
+        private scale: number = 1.0;
+
+        getGridWidth(): number { return this.gridWidth * 2.0; }
+        getGridHeight(): number { return this.gridHeight * 2.0; }
+        setGridWidth(w: number) { if (w >= 1.0) this.gridWidth = w; }
+        setGridHeight(h: number) { if (h >= 1.0) this.gridHeight = h; }
+
         private updateGridBuffer(args: CellGridProgramRenderArguments, gridData: CellsGridData): number {
             const components = 4;
             const positions: number[] = Array((gridData.w * 2) * (gridData.h * 2) * components);
@@ -430,6 +436,7 @@ export module GL {
             const dy = 1 / gridData.h;
             const ax = (gridData.radius / args.renderer!.canvasDimensions.w);
             const ay = (gridData.radius / args.renderer!.canvasDimensions.h);
+            const aspectRatio = args.renderer!.canvasDimensions.w / args.renderer!.canvasDimensions.h * (gridData.w / gridData.h);
 
             // Note: Multiply row and column boundaries by 2
             // to fill up all four quadrants of screen in WebGL canvas
@@ -437,24 +444,21 @@ export module GL {
                 for (let j = 0; j < gridData.h * 2; ++j) {
                     const index = (i * gridData.h * 2 * components) + (j * components);
 
-                    const distance = Math.sqrt(Math.pow((x + ax) - (args.renderer!.cursorPosition.x), 2) + Math.pow((y + ay)- (-args.renderer!.cursorPosition.y), 2));
+                    const distance = Math.sqrt((Math.pow(x - (args.renderer!.cursorPosition.x), 2) * aspectRatio) + Math.pow(y - (-args.renderer!.cursorPosition.y), 2));
                     positions[index + 3] = distance > 0.3 ? 0.1 : (1.0 - (2.0 * distance)) * 0.3;
 
                     // TODO: Proper relative bounds checking to prevent flowing off of grid
-                    const r1 = Math.round(gridData.subGrid.parentRowStart * gridData.w * 2);
-                    const r2 = r1 + gridData.subGrid.totalRows;
-                    const c1 = Math.round(gridData.subGrid.parentColumnStart * gridData.h * 2);
-                    const c2 = c1 + gridData.subGrid.totalColumns;
+                    const r1 = Math.round(gridData.subGrid.parentColumnStart * gridData.w * 2);
+                    const r2 = r1 + Math.round(gridData.subGrid.totalColumns);
+                    const c1 = Math.round(gridData.subGrid.parentRowStart * gridData.h * 2);
+                    const c2 = c1 + Math.round(gridData.subGrid.totalRows);
 
                     if (r1 <= i && i < r2 && c1 <= j && j < c2) {
-                        const li = gridData.subGrid.totalRows - (r2 - i);
-                        const lj = gridData.subGrid.totalColumns - (c2 - j);
-                        const localIndex = (li * gridData.subGrid.totalRows * gridData.subGrid.totalComponents) + (lj * gridData.subGrid.totalComponents);
-                        // positions[index + 0] = x + (ax / gridData.density) + (gridData.subGrid.data[localIndex + 0]);
-                        // positions[index + 1] = y + (ay / gridData.density) * (gridData.subGrid.data[localIndex + 1]);
+                        const localIndex = (i * gridData.h * 2) + (j);
                         positions[index + 0] = x + (ax / gridData.density);
                         positions[index + 1] = y + (ay / gridData.density);
-                        positions[index + 2] = gridData.radius * gridData.subGrid.data[localIndex + 2]; // TODO: Map of each component
+                        positions[index + 2] = gridData.radius * 1.0;
+                        // positions[index + 2] = gridData.radius * (gridData.subGrid.data[localIndex]); // TODO: Map of each component
                     } else {
                         positions[index + 0] = x + (ax / gridData.density);
                         positions[index + 1] = y + (ay / gridData.density);
@@ -472,6 +476,5 @@ export module GL {
 
             return positions.length / 4;
         }
-
     }
 }

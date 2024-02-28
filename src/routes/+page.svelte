@@ -7,6 +7,7 @@
     import WaveformIcon from "$lib/components/iconWaveform.svelte";
     import ComponentSpacer from "$lib/components/componentSpacer.svelte";
     import GLCanvas from "$lib/components/GLCanvas.svelte";
+    import { onMount } from "svelte";
 
     const iconDefaultSize = 512;
     const iconPixelSize = 38;
@@ -26,16 +27,12 @@
         WaveformIcon,
         WaveformIcon
     ];
-
 </script>
 
 <div id="backgroundMain" />
-
 <GLCanvas />
-
 <div id="backgroundFront" />
 
-<!-- <WaveformGrid blocks={32}/> -->
 <section id="titleContainer">
     <ComponentSpacer direction="vertical" spacing={6} unit="rem">
         <ComponentSpacer direction="horizontal" spacing={4} unit="rem">
@@ -57,7 +54,7 @@
 
 <section id="browserContainer">
     <ComponentSpacer direction="vertical" spacing={4} unit="rem">
-        <div id="browserScreen"></div>
+        <div id="browserScreen" class="border-white border-solid border-2 rounded-e"></div>
         <ComponentSpacer direction="horizontal" spacing={1} unit="rem">
             <p id="transportFile" class="text-xl font-medium lowercase absolute">lorem_ipsum.wav</p>
             <div class="w-px bg-white"></div>
